@@ -1,0 +1,40 @@
+SELECT
+    u.usename,
+    s.schemaname,
+    has_schema_privilege(u.usename,s.schemaname,'create') AS user_has_select_permission,
+    has_schema_privilege(u.usename,s.schemaname,'usage') AS user_has_usage_permission
+FROM
+    pg_user u
+CROSS JOIN
+    (SELECT DISTINCT schemaname FROM pg_tables) s
+WHERE
+    --u.usename = 'myUserName'
+   -- AND 
+    s.schemaname = 'c3_cdm_emol_202101'
+    and has_schema_privilege(u.usename,s.schemaname,'usage') =true
+    
+    select s.nspname as table_schema,
+       s.oid as schema_id,
+       u.usename as owner
+from pg_catalog.pg_namespace s
+join pg_catalog.pg_user u on u.usesysid = s.nspowner
+where nspname not in ('information_schema', 'pg_catalog', 'public')
+      and nspname not like 'pg_toast%'
+      and nspname not like 'pg_temp_%'
+      and s.nspname ='c3_cdm_emol_202101'
+order by table_schema;
+
+alter schema c3_cdm_emol_202101 owner to  "jvengaloor@concertohealthai.com"
+    
+    revoke usage on schema c3_cdm_emol_202101 from group c3_cdm_statsup_read;
+revoke select on all tables in schema c3_cdm_emol_202101 from group c3_cdm_statsup_read;
+
+
+revoke  usage on schema c3_cdm_emol_202101 from "jhammond@concertohealthai.com";
+revoke select, insert, update, delete, references on all tables in schema c3_cdm_emol_202101 from "jhammond@concertohealthai.com"; 
+revoke create on schema c3_cdm_emol_202101 from "jhammond@concertohealthai.com";
+
+select * from pg_group
+
+select u.usename, s.schemaname||'.'||s.tablename as relation, has_schema_privilege(u.usename,s.schemaname ,'create') AS user_has_select_permission, has_schema_privilege(u.usename,s.schemaname ,'usage') AS user_has_select_permission FROM pg_user u CROSS JOIN (SELECT DISTINCT schemaname, tablename FROM pg_tables) s
+
